@@ -41,7 +41,7 @@ function mainMenu() {
               break
           case "4": // Random Game
               console.clear()
-              randomGame()
+              randomPlayTurn(1)
               break
           case "5": // Two-Player Game
               console.clear()
@@ -85,12 +85,7 @@ function checkGame(board, player) {
     return player
   }
   // Draw (all cells filled, 2), else return 0
-  if (board.every(row => row.every(cell => cell !== 0))) { // Check if all cells are filled
-    return 2 // Draw
-  }
-  else {
-    return 0 // Game continues
-  }
+  return board.every(row => row.every(cell => cell !== 0)) ? 2 : 0
 }
 
 // Conversion function: from string, and from digits - to X and O
@@ -165,6 +160,53 @@ function gameOver(state) {
   });
 }
 
+// Function to handle a random turn
+function randomPlayTurn(player) {
+  console.clear()
+  console.log("   ┌─────────────┐\n   │ TIC TAC TOE │\n   └─────────────┘\n     RANDOM GAME\n──────────────────────")
+
+  // Display the current state of the board
+  displayBoard(gameBoard)
+  console.log ("──────────────────────")
+
+  // Show whose turn it is
+  const playerSymbol = player === 1 ? "X" : "O" // If player is 1, "X", else "O"
+
+  // Find all empty cells, add to an array as their indexes
+  const emptyCells = []
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (gameBoard[i][j] === 0) {
+        emptyCells.push([i, j])
+      }
+    }
+  }
+  
+  // Pick a random empty cell
+  const randomIndex = Math.floor(Math.random() * emptyCells.length)
+  const [row, col] = emptyCells[randomIndex]
+  
+  // Convert the move to the expected format (A1, B2, etc.)
+  const rowLabel = String.fromCharCode(65 + row) // A-C = 65-67, so we add 65 to the row index to get the correct row letter
+  const colLabel = col + 1 // 1-3 = 1-3, so we add 1 to the column index to get the correct column number
+  
+  console.log("   " + playerSymbol + " will play: " + rowLabel + colLabel)
+  console.log("──────────────────────")
+  rl.question("Press Enter to continue...", () => {
+    // Make the move
+    gameBoard[row][col] = player
+    
+    // Check if the game is over, and if it is, run the gameOver function
+    if (checkGame(gameBoard, player) !== 0) {
+      gameOver(checkGame(gameBoard, player))
+      return
+    }
+    
+    // Continue with the other player
+    randomPlayTurn(-player)
+  })
+}
+
 // Function to handle a player's turn
 function playTurn(player) {
   console.clear()
@@ -173,6 +215,7 @@ function playTurn(player) {
   // Display the current state of the board
   displayBoard(gameBoard)
   console.log ("──────────────────────")
+
   // Show whose turn it is
   const playerSymbol = player === 1 ? "X" : "O" // If player is 1, "X", else "O"
   console.log("      " + playerSymbol + "'s  turn")
@@ -184,11 +227,12 @@ function playTurn(player) {
     
     // Check if the move is valid
     if (!move) {
-      console.log("Invalid input! Try again with format 'A1', 'B2', etc.")
+      console.log("Invalid input! Try again with the format 'A1', 'B2', etc.")
       setTimeout(() => playTurn(player), 2000) // Wait 2 seconds before continuing
       return
     }
     
+    // Convert the move to row and column indexes
     const [row, col] = move
     
     // Check if the cell is already taken
